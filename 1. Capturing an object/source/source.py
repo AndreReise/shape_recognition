@@ -144,7 +144,7 @@ def calc_and_print_distance(shape1, shape2):
     print("Shape {} | Shape {} | Distance {}".format(shape1.name, shape2.name, distance))
 
 
-image_count = len(os.listdir("img"))
+image_count = len(os.listdir("./img"))
 index = 0
 
 # for i in range(image_count):
