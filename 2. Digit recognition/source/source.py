@@ -1,11 +1,6 @@
-from asyncore import read
-from email.mime import image
-from email.policy import default
-from turtle import shape
 import cv2
 import os
 import math
-import numpy as np
 import operator
 
 def loadData():
