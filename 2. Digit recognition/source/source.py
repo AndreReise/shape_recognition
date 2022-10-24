@@ -2,6 +2,8 @@ import cv2
 import os
 import math
 import operator
+from scipy.ndimage import interpolation as inter
+import numpy as np
 
 def loadData():
     data = dict([
@@ -80,17 +82,20 @@ def classify(preparedImage):
     max_value_elements = list()
 
     for key, value in frequency.items():
-        if value == max_value:
+        if value == max_value[1]:
             max_value_elements.append(key)
 
     if len(max_value_elements) == 1:
-        return max_value_elements[0]
-    else:
-        return minDistances[0][0]
+
+        for distance in minDistances:
+            if distance[0] == max_value_elements[0]:
+                return distance
+
+    return (minDistances[0][0], minDistances[0][1])
 
 
 
-image = cv2.imread("sample.png", cv2.IMREAD_GRAYSCALE)
+image = cv2.imread("sample2.png", cv2.IMREAD_GRAYSCALE)
 
 # In OpenCV, finding contours is like finding white object from black background.
 image = cv2.bitwise_not(image)
@@ -99,7 +104,7 @@ th, dst = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY);
 
 contours, _ = cv2.findContours(image=dst, mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_SIMPLE)
 
-image_copy =  cv2.imread("sample.png")
+image_copy =  cv2.imread("sample2.png")
 
 count = 1
 
@@ -127,12 +132,11 @@ for contour in contours:
     # 1. Select only bounding rectangle
     cropped = image[y:(y + h), x:(x + w), ]
 
-
-    #cv2.imshow('cropped', cropped)
-    #cv2.waitKey()
-
     # 2. Resize to the 20x20 pixel box
     resized = cv2.resize(cropped, (20, 20))
+
+    #cv2.imshow('resized', resized)
+    #cv2.waitKey()
 
     # 3. Extend a little bit to simplify shifting to centroid-based
     extended = cv2.copyMakeBorder(resized, 50, 50, 25, 25, cv2.BORDER_CONSTANT, None, value = 0)
@@ -149,10 +153,11 @@ for contour in contours:
     cv2.imwrite("{count}.jpg".format(count = count), centroidBased)
 
     # 6. Apply classifier
-    classificationResult = classify(thresh)
+    classificationResult, distance = classify(thresh)
     #classificationResult = '1'
 
     #  Optional - some result writing
+    print("Minimal distance for shape {} = {}".format(count, distance))
     cv2.putText(image_copy, classificationResult, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0))
     cv2.rectangle(image_copy, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
